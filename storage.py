@@ -1,6 +1,6 @@
 import abc
 from typing import Protocol
-from habit import Habit, PeriodLength
+from habit import Habit, PeriodLength, StreakPeriod
 from pathlib import Path
 from enum import StrEnum
 from datetime import datetime
@@ -94,7 +94,7 @@ class OrgStorage:
             elif line.startswith(':created: ['):
                 [_, _, date] = line.partition(':created: [')
                 end = date.find(']\n')
-                created = datetime.strptime(date[:end], "%Y-%m-%d %H:%M")
+                created = datetime.strptime(date[:end], "%Y-%m-%d %H:%M:%S")
 
             # Streak
             elif line.startswith(':streak: '):
@@ -102,24 +102,22 @@ class OrgStorage:
                 streak = int(line[start:])
 
             # Longest streak
-            # NOTE: For some reason mypy complains about nr, dt1, dt2 begin not valid types??
-            # and also thus complains about the tuple
             elif line.startswith(':longest streak: '):
-                [_, _, rest] = line.partition(' ')
-                [_, _, rest] = rest.partition(' ')
-                [nr, _, rest] = rest.partition(' ')
-                [d1, _, d2] = rest.partition(';')
+                _, _, rest = line.partition(' ')
+                _, _, rest = rest.partition(' ')
+                nr, _, rest = rest.partition(' ')
+                d1, _, d2 = rest.partition(';')
                 dt1 = datetime.strptime(d1[1:-2], "%Y-%m-%d %H:%M")
                 dt2 = datetime.strptime(d2[1:-2], "%Y-%m-%d %H:%M")
-                longest_streak = tuple[nr, dt1, dt2]
+                longest_streak = StreakPeriod(nr, dt1, dt2)
 
             # Period length
             elif line.startswith(':period: '):
                 start = line.find(' ') + 1
                 l = line[start:-1]
-                if l == "daily":
+                if l == "Daily":
                     period = PeriodLength.daily
-                elif l == "weakly":
+                elif l == "Weakly":
                     period = PeriodLength.weakly
                 else:
                     print(f"Unkown PeriodLength in file: {self.file}")
@@ -130,18 +128,50 @@ class OrgStorage:
 
 
             elif line.strip() == "":
-                # NOTE: Mypy complains because of Optional[completed]
+                # TODO: Raise exception if not ... ?
                 if name and symbol and period and created and streak and completed != None:
-                    new_habit = Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
+                    # NOTE: Because mypy complains about Optional[bool] otherwise
+                    if completed == True:
+                        comp = True
+                    else:
+                        comp = False
+                    new_habit = Habit(name, symbol, period, created, streak, comp, completed_times, longest_streak)
                     habits.append(new_habit)
 
         f.close()
 
+        # TODO: Raise exception if not ... ?
         if name and symbol and period and created and streak and completed != None:
-            new_habit = Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
+            # NOTE: Because mypy complains about Optional[bool] otherwise
+            if completed == True:
+                comp = True
+            else:
+                comp = False
+            new_habit = Habit(name, symbol, period, created, streak, comp, completed_times, longest_streak)
             habits.append(new_habit)
 
         return habits
 
     def save(self, habits: list[Habit]):
-        print("OrgStorage.save not implemented yet")
+        f = open(self.file, "w")
+        
+        for h in habits:
+            print(h)
+            if h.completed:
+                t = "DONE"
+            else:
+                t = "TODO"
+            # TODO: How to print tuple
+            org = f"""
+* {t} {h.symbol} {h.name}
+:PROPERTIES:
+:created: [{h.creation_date}]
+:streak: {h.streak_length}
+:longest_streak: {h.longest_streak}
+:period: {h.period_length}
+:END:"""
+            f.write(org)
+            for time in h.completed_times:
+                f.write(f"- [{time}]")
+
+        f.close()

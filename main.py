@@ -2,6 +2,7 @@ from habit import Habit, PeriodLength
 from storage import StorageKind
 from app import HabitTracker
 
+from storage import OrgStorage
 # Mypy not recognizing Exception
 if __name__ == "__main__":
     d = Habit.new("Daily", "D", PeriodLength.daily)
@@ -21,10 +22,4 @@ if __name__ == "__main__":
 
     app = HabitTracker(StorageKind.org, "habits.org")
 
-    try:
-        app.save()
-    except:
-        pass
-
-    for h in app.habits:
-        print(h)
+    app.save()

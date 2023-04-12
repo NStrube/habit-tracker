@@ -17,6 +17,33 @@ class PeriodLength(StrEnum):
     daily = "Daily"
     weakly = "Weakly"
 
+class StreakPeriod:
+    """
+    A class used to represent longest streak of habit
+
+    Attributes
+    ----------
+    length: int
+        Length of  streak for quick identification.
+    begin: datetime
+        Beginning of the streak.
+    end: datetime
+        Beginning of the streak.
+
+    Because fuck tuples. Can't index them for some reason.
+    """
+    length: int
+    begin: datetime
+    end: datetime
+
+    def __init__(self, length, begin, end):
+        self.length = length
+        self.begin = begin
+        self.end = end
+
+    def __str__(self):
+        return f"{self.length} [{self.begin}];[{self.end}]"
+
 class Habit():
     """
     A class used to represent habits.
@@ -32,10 +59,8 @@ class Habit():
         The date and time of creation of a habit.
     streak_length: int
         An integer used to quickly identify how long a habit has not been broken.
-    longest_streak: Optional[tuple[int, datetime, datetime]]
-        A tuple of an integer, and 2 datetimes.
-        The integer is used for quick identification of length.
-        The datetimes are stored for analysis purposes.
+    longest_streak: Optional[StreakPeriod]
+        An optional StreakPeriod for representing how long the longest streak was.
     period_length: PeriodLength
         A PeriodLength used to identify the period length for a habit.
     completed: bool
@@ -48,7 +73,7 @@ class Habit():
     symbol: str
     creation_date: datetime
     streak_length: int = 0
-    longest_streak: Optional[tuple[int, datetime, datetime]] = None
+    longest_streak: Optional[StreakPeriod] = None
     period_length: PeriodLength
     completed: bool = False
     completed_times: list[datetime] = list()
@@ -57,7 +82,7 @@ class Habit():
     def __init__(self, name: str, symbol: str, period_length: PeriodLength,
                  creation_date: datetime, streak_length: int,
                  completed: bool, completed_times: list[datetime],
-                 longest_streak: Optional[tuple[int, datetime, datetime]] = None):
+                 longest_streak: Optional[StreakPeriod] = None):
         """
         Constructer for a Habit.
         """
