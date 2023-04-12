@@ -1,0 +1,5 @@
+#+title: A habit tracking app
+
+This is a project for University.
+
+* TODO: Write Readme
