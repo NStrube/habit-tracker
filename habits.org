@@ -1,0 +1,20 @@
+# * <completed> <symbol> <name>
+# :PROPRTIES:
+# :created: <creation_date>
+# :streak: <streak_length>
+# :longest streak: <longest_streak>
+# :period: <period_length>
+# :END:
+# - <completed_times>
+# - <completed_times>
+# - <completed_times>
+
+* TODO [T] Brush teeth
+:PROPERTIES:
+:created: [2023-04-12 16:09]
+:streak: 2
+:longest streak: 2 [2023-04-10 9:30];[2023-04-11 13:00]
+:period: daily
+:END:
+- [2023-04-11 Wed 13:00]
+- [2023-04-10 Wed 9:30]
