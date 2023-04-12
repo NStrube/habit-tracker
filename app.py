@@ -1,5 +1,7 @@
 from habit import Habit
-from storage import StorageInterface
+from storage import StorageInterface, StorageKind, OrgStorage
+from pathlib import Path
+from typing import Optional
 
 class HabitTracker:
     """
@@ -30,43 +32,46 @@ class HabitTracker:
     habits: list[Habit] = list()
     storage: StorageInterface
 
-    # TODO: If file taken out of read and save, take in enum and for read_from save_as as well
-    def __init__(self, storage: StorageInterface):
+    def __init__(self, store_kind: StorageKind, file: Optional[str] = None):
         """
         App constructor
 
-        Takes in a StorageInterface to use as primary storage medium.
+        Takes in a StorageKind and a file if needed to use as primary storage implementation.
         """
-        self.storage = storage
+        # TODO: Reusable? Own function?
+        if store_kind == StorageKind.org:
+            if file:
+                self.storage = OrgStorage(file)
+            else:
+                print("OrgStorage requires a file")
+                return
+        else:
+            print("Unknown StorageKind")
+            return
         self.read()
 
     def read(self):
         """
         Uses self.storage to read in habits into self.habits.
         """
-        self.habits = self.storage.read(self.storage.file)
-
-
-    def read_from(self, file: str):
-        """
-        !! Not Implemented Yet !!
-        Reads in habits from the given file.
-        """
-        # TODO: mypy not recognizing Exception
-        # raise Exception('NotImplementedYet')
-        print("HabitTracker.read_from not implemented yet.")
+        self.habits = self.storage.read()
 
     def save(self):
         """
         Uses self.storage to save self.habits.
         """
-        self.storage.save(self.storage.file, self.habits)
+        self.storage.save(self.habits)
 
-    def save_as(self, file: str):
+    def read_from(self, file: str, store_kind: StorageKind):
         """
         !! Not Implemented Yet !!
-        Saves habits to given file.
+        Reads in habits from the given file using giving Storage implementation.
         """
-        # TODO: mypy not recognizing Exception
-        # raise Exception('NotImplementedYet')
+        print("HabitTracker.read_from not implemented yet.")
+
+    def save_as(self, file: str, store_kind: StorageKind):
+        """
+        !! Not Implemented Yet !!
+        Saves habits to given file using giving Storage implementation.
+        """
         print("HabitTracker.save_as implemented yet.")

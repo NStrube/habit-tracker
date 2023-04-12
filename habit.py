@@ -2,12 +2,11 @@ from datetime import datetime
 from typing import Optional, Literal
 from enum import StrEnum
 
-# TODO: These kinda suck
 class PeriodLength(StrEnum):
     """
     An Enum used to specify the period lengths of habits.
 
-    Current supported values are:
+    Current supported values:
         daily
         weakly
     """
@@ -34,14 +33,13 @@ class Habit():
         The integer is used for quick identification of length.
         The datetimes are stored for analysis purposes.
     period_length: PeriodLength
-        A string used to identify the period length for a habit.
+        A PeriodLength used to identify the period length for a habit.
     completed: bool
         A boolean to quickly check if a habit has been completed for the current period already.
         This could be removed but since python is slow used for quick checking.
     completed_times: list[datetime]
         A list of datetimes storing every time a habit was completed.
     """
-    # TODO: Check if python can take references for longest_streak datetimes
     name: str
     symbol: str
     creation_date: datetime
@@ -68,7 +66,6 @@ class Habit():
         """
         How to represent a Habit as a string (useful for print).
         """
-        # TODO: Make this code prettier?
         return f"""[{self.symbol}] {self.name}:
     Period: {self.period_length}
     Completed: {self.completed}

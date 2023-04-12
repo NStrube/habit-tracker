@@ -2,6 +2,16 @@ import abc
 from typing import Protocol
 from habit import Habit
 from pathlib import Path
+from enum import StrEnum
+
+class StorageKind(StrEnum):
+    """
+    An Enum used to specify the kind of StorageInterface to use.
+
+    Current supported values:
+        org
+    """
+    org = "Org"
 
 class StorageInterface(Protocol):
     """
@@ -17,16 +27,12 @@ class StorageInterface(Protocol):
     save(str) -> list[Habit]:
         Saves habits.
     """
-    # TODO: can't take file cuz DB don't use that? So remove it?
-    @staticmethod
-    def read(file: Path) -> list[Habit]:
-        """Reads in the habits from file 'file'."""
+    def read(self) -> list[Habit]:
+        """Reads in the habits."""
         raise NotImplementedError
 
-    # TODO: can't take file cuz DB don't use that? So remove it?
-    @staticmethod
-    def save(file: Path, habits: list[Habit]):
-        """Save the habits to file 'file'."""
+    def save(self, habits: list[Habit]):
+        """Save the habits."""
         raise NotImplementedError
 
 class OrgStorage:
@@ -38,24 +44,15 @@ class OrgStorage:
 
     def __init__(self, file: str):
         if not Path(file).suffix == ".org":
-            # raise Expection('WrongFileFormat')
             print(f"WrongFileFormat: {file}")
             return
         self.file = Path(file)
 
-    # TODO: Depending on what StorageInterface becomes use self.file
-    @staticmethod
-    def read(file: Path) -> list[Habit]:
+    def read(self) -> list[Habit]:
         print("Read org.")
-        # TODO: mypy not recognizing Exception
-        # raise Exception('NotImplementedYet')
         print("OrgStorage.read not implemented yet")
         return list()
 
-    # TODO: Depending on what StorageInterface becomes use self.file
-    @staticmethod
-    def save(file: Path, habits: list[Habit]):
+    def save(self, habits: list[Habit]):
         print("Save org.")
-        # TODO: mypy not recognizing Exception
-        # raise Exception('NotImplementedYet')
         print("OrgStorage.save not implemented yet")
