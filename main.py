@@ -3,6 +3,16 @@ from storage import StorageKind
 from app import HabitTracker
 
 from storage import OrgStorage
+
+# TODO:
+# ╭―――――――――――――――――――――――――――╮
+# │                           │
+# │    Rewrite It in Rust     │
+# │                           │
+# ╰―――――――――――――――――――――――――――╯
+#
+# Or any sane language, really
+
 # Mypy not recognizing Exception
 if __name__ == "__main__":
     d = Habit.new("Daily", "D", PeriodLength.daily)
