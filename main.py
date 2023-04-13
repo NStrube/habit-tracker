@@ -1,6 +1,7 @@
 from habit import Habit, PeriodLength
 from storage import StorageKind
 from app import HabitTracker
+from tui import Tui
 
 from storage import OrgStorage
 
@@ -33,3 +34,5 @@ if __name__ == "__main__":
     app = HabitTracker(StorageKind.org, "habits.org")
 
     app.save()
+
+    Tui().run()

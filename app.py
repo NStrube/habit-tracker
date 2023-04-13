@@ -2,6 +2,9 @@ from habit import Habit
 from storage import StorageInterface, StorageKind, OrgStorage
 from pathlib import Path
 from typing import Optional
+from datetime import datetime
+
+from log import log
 
 class HabitTracker:
     """
@@ -54,6 +57,7 @@ class HabitTracker:
         """
         Uses self.storage to read in habits into self.habits.
         """
+        # TODO: Ensure habit names are unique
         self.habits = self.storage.read()
 
     def save(self):
@@ -75,3 +79,26 @@ class HabitTracker:
         Saves habits to given file using giving Storage implementation.
         """
         print("HabitTracker.save_as implemented yet.")
+
+    def get_completed_str(self) -> list[str]:
+        comp = list()
+        for h in self.habits:
+            if h.completed:
+                comp.append(repr(h))
+        return comp
+
+    def get_uncompleted_str(self) -> list[str]:
+        uncomp = list()
+        for h in self.habits:
+            if not h.completed:
+                uncomp.append(repr(h))
+        return uncomp
+
+    def complete(self, n: str):
+        log("Habit to be marked complete:" + n)
+        for h in self.habits:
+            if n == repr(h):
+                h.completed_times.append(datetime)
+                h.completed = True
+                log("After marked:\n" + str(h))
+                break

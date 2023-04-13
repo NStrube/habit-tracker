@@ -115,3 +115,6 @@ Completed: {self.completed}
 Streak: {self.streak_length}
 Longest Streak: {self.longest_streak}
 Creation Date: {self.creation_date}"""
+
+    def __repr__(self):
+        return f"{self.symbol} {self.name}: {self.period_length}, Streak: {self.streak_length}"
