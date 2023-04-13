@@ -5,6 +5,8 @@ from pathlib import Path
 from enum import StrEnum
 from datetime import datetime
 
+from log import log
+
 class StorageKind(StrEnum):
     """
     An Enum used to specify the kind of StorageInterface to use.
@@ -72,9 +74,14 @@ class OrgStorage:
         period = None
         completed_times: list[datetime] = []
 
+        # If longest_streak has been read or not
+        read_ls = False
+
         AlreadyAdded = False
 
         for line in f:
+            log(f"'{line.rstrip()}': read_ls: {read_ls}")
+            log("\n\nLocals:\n" + repr(locals()) + "\n\n")
             # NOTE: line keeps newline character
             if line.startswith(':PROP') or line.startswith(':END') or line.startswith('# '):
                 continue
@@ -83,13 +90,9 @@ class OrgStorage:
             elif line.startswith('* '):
                 # NOTE: Only relevant if not newline separated Habits
                 # TODO: Raise exception if not ... ?
-                if not AlreadyAdded and name and symbol and period and created and streak and completed != None:
-                    # NOTE: Because mypy complains about Optional[bool] otherwise
-                    if completed == True:
-                        comp = True
-                    else:
-                        comp = False
-                    new_habit = Habit(name, symbol, period, created, streak, comp, completed_times, longest_streak)
+                if not AlreadyAdded and name and symbol and period and created and streak is not None and read_ls and completed is not None:
+                    read_ls = False
+                    new_habit = Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
                     habits.append(new_habit)
                 AlreadyAdded = False
 
@@ -117,12 +120,19 @@ class OrgStorage:
 
             # Longest streak
             elif line.startswith(':longest streak: '):
+                read_ls = True
                 _, _, rest = line.partition(' ')
                 _, _, rest = rest.partition(' ')
+                if rest.strip() == "None":
+                    continue
                 nr, _, rest = rest.partition(' ')
                 d1, _, d2 = rest.partition(';')
-                dt1 = datetime.strptime(d1[1:-2], "%Y-%m-%d %H:%M")
-                dt2 = datetime.strptime(d2[1:-2], "%Y-%m-%d %H:%M")
+                log("d1 " + d1)
+                log("d1 slice" + d1[1:-1])
+                dt1 = datetime.strptime(d1[1:-1], "%Y-%m-%d %H:%M:%S")
+                log("d2" + d2)
+                log("d2 slice" + d2[1:-2])
+                dt2 = datetime.strptime(d2[1:-2], "%Y-%m-%d %H:%M:%S")
                 longest_streak = StreakPeriod(nr, dt1, dt2)
 
             # Period length
@@ -143,26 +153,17 @@ class OrgStorage:
 
             elif line.strip() == "":
                 # TODO: Raise exception if not ... ?
-                if name and symbol and period and created and streak and completed != None:
-                    # NOTE: Because mypy complains about Optional[bool] otherwise
-                    if completed == True:
-                        comp = True
-                    else:
-                        comp = False
-                    new_habit = Habit(name, symbol, period, created, streak, comp, completed_times, longest_streak)
+                if name and symbol and period and created and streak is not None and read_ls and completed is not None:
+                    read_ls = False
+                    new_habit = Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
                     habits.append(new_habit)
                     AlreadyAdded = True
 
         f.close()
 
         # TODO: Raise exception if not ... ?
-        if name and symbol and period and created and streak and completed != None:
-            # NOTE: Because mypy complains about Optional[bool] otherwise
-            if completed == True:
-                comp = True
-            else:
-                comp = False
-            new_habit = Habit(name, symbol, period, created, streak, comp, completed_times, longest_streak)
+        if name and symbol and period and created and streak is not None and read_ls and completed is not None:
+            new_habit = Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
             habits.append(new_habit)
 
         return habits
@@ -181,7 +182,7 @@ class OrgStorage:
 :PROPERTIES:
 :created: [{h.creation_date}]
 :streak: {h.streak_length}
-:longest_streak: {h.longest_streak}
+:longest streak: {h.longest_streak}
 :period: {h.period_length}
 :END:
 """
