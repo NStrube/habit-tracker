@@ -72,6 +72,8 @@ class OrgStorage:
         period = None
         completed_times: list[datetime] = []
 
+        AlreadyAdded = False
+
         for line in f:
             # NOTE: line keeps newline character
             if line.startswith(':PROP') or line.startswith(':END') or line.startswith('# '):
@@ -79,6 +81,18 @@ class OrgStorage:
 
             # Completed, symbol, name
             elif line.startswith('* '):
+                # NOTE: Only relevant if not newline separated Habits
+                # TODO: Raise exception if not ... ?
+                if not AlreadyAdded and name and symbol and period and created and streak and completed != None:
+                    # NOTE: Because mypy complains about Optional[bool] otherwise
+                    if completed == True:
+                        comp = True
+                    else:
+                        comp = False
+                    new_habit = Habit(name, symbol, period, created, streak, comp, completed_times, longest_streak)
+                    habits.append(new_habit)
+                AlreadyAdded = False
+
                 [_, _,rest] = line.partition(' ')
                 [t, _, rest] = rest.partition(' ')
                 [symbol, _, name] = rest.partition(' ')
@@ -137,6 +151,7 @@ class OrgStorage:
                         comp = False
                     new_habit = Habit(name, symbol, period, created, streak, comp, completed_times, longest_streak)
                     habits.append(new_habit)
+                    AlreadyAdded = True
 
         f.close()
 
@@ -169,7 +184,8 @@ class OrgStorage:
 :streak: {h.streak_length}
 :longest_streak: {h.longest_streak}
 :period: {h.period_length}
-:END:"""
+:END:
+"""
             f.write(org)
             for time in h.completed_times:
                 f.write(f"- [{time}]")
