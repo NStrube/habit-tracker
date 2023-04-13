@@ -133,7 +133,7 @@ class OrgStorage:
                 log("d2" + d2)
                 log("d2 slice" + d2[1:-2])
                 dt2 = datetime.strptime(d2[1:-2], "%Y-%m-%d %H:%M:%S")
-                longest_streak = StreakPeriod(nr, dt1, dt2)
+                longest_streak = StreakPeriod(int(nr), dt1, dt2)
 
             # Period length
             elif line.startswith(':period: '):
