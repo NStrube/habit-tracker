@@ -1,4 +1,4 @@
-from habit import Habit
+from habit import Habit, PeriodLength
 from storage import StorageInterface, StorageKind, OrgStorage
 from pathlib import Path
 from typing import Optional
@@ -102,3 +102,6 @@ class HabitTracker:
                 h.completed = True
                 log("After marked:\n" + str(h))
                 break
+
+    def addTodo(self, name: str, symbol: str, period_length: PeriodLength):
+        self.habits.append(Habit.new(name, symbol, period_length))

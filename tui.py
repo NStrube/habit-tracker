@@ -1,8 +1,10 @@
 from blessed import Terminal
 from enum import StrEnum
+import string
 
 from app import HabitTracker
 from storage import StorageKind
+from habit import PeriodLength
 
 from log import log
 
@@ -145,5 +147,39 @@ class Tui:
                     if self.cursor > 0:
                         self.cursor -= 1
                 self.getHabits()
+            case '+':
+                log("Pressed +.")
+                name = self.get_str("Name: ")
+                symbol = self.get_str("Symbol: ")
+                period = self.get_period()
+                self.habit_tracker.addTodo(name, symbol, period)
+                self.getHabits()
             case _:
                 pass
+
+    def get_str(self, prompt: str) -> str:
+        s = ""
+        log("Getting str.")
+        while True:
+            log("Str: " + s)
+            print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + s, end='', flush=True)
+            ch = self.term.getch()
+            # Enter
+            if ch == '\n':
+                return s
+            # Backspace
+            elif ch == chr(263):
+                s = s[:-1]
+            elif ch in string.printable:
+                s += ch
+
+    def get_period(self) -> PeriodLength:
+        while True:
+            p = self.get_str("Period length [d/daily/w/weakly]:")
+            match p.lower():
+                case "d" | "daily":
+                    return PeriodLength.daily
+                case "w" | "weakly":
+                    return PeriodLength.weakly
+                case _:
+                    continue
