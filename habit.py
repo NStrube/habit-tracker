@@ -104,7 +104,6 @@ class Habit():
         """
         return Habit(name, symbol, period_length, datetime.now(), 0, False, list())
     
-    # TODO: Figure out how to print tuple
     def __str__(self):
         """
         How to represent a Habit as a string (useful for print).

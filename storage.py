@@ -176,7 +176,6 @@ class OrgStorage:
                 t = "DONE"
             else:
                 t = "TODO"
-            # TODO: How to print tuple
             org = f"""
 * {t} {h.symbol} {h.name}
 :PROPERTIES:

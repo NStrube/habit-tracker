@@ -26,11 +26,6 @@ if __name__ == "__main__":
     print()
     print()
 
-    # TODO: Should this be disallowed?
-    # Mypy doesn't allow it already, but works fine if just executing
-    # t = Habit("Test", "T", "Test")
-    # print(t)
-
     app = HabitTracker(StorageKind.org, "habits.org")
 
     app.save()
