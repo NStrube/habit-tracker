@@ -18,6 +18,7 @@ class TuiPage(StrEnum):
     """
     homepage = "Home Page"
     analytics = "Analytics"
+    info = "Habit Information"
 
 def printTable(term: Terminal, lhs: list[str], rhs: list[str]):
     printRow(term, "TODO", "DONE")
@@ -97,24 +98,80 @@ class Tui:
                 self.draw()
 
     def draw(self):
-        with self.term.hidden_cursor():
-            # TODO: Make it print both page names and the current one in '[]'
+        if self.page == TuiPage.homepage:
+            with self.term.hidden_cursor():
+                # TODO: Make it print both page names and the current one in '[]'
+                print(self.term.clear() + self.term.home() + "[" + self.page + "]")
+                printTable(self.term, self.uncompleted, self.completed)
+            if self.on_todos: 
+                cursor_x = 0
+            else: 
+                cursor_x = self.term.width // 2
+            log("cursor: " + repr(cursor_x) + ", " + repr(self.cursor))
+            print(self.term.move_yx(self.cursor + 3, cursor_x), end='', flush=True)
+        elif self.page == TuiPage.analytics:
+            pass
+        else:
+            if self.on_todos and self.cursor < len(self.uncompleted):
+                h = self.habit_tracker.getHabit(self.uncompleted[self.cursor])
+            elif not self.on_todos and self.cursor < len(self.completed):
+                h = self.habit_tracker.getHabit(self.completed[self.cursor])
+            else:
+                self.page = TuiPage.homepage
+                # self.draw()
+                return
             print(self.term.clear() + self.term.home() + "[" + self.page + "]")
-            printTable(self.term, self.uncompleted, self.completed)
-        if self.on_todos: 
-            cursor_x = 0
-        else: 
-            cursor_x = self.term.width // 2
-        log("cursor: " + repr(cursor_x) + ", " + repr(self.cursor))
-        print(self.term.move_yx(self.cursor + 3, cursor_x), end='', flush=True)
+            print()
+            print(h)
+
 
     def input(self):
         inp = self.term.inkey().lower()
         log("input: " + inp)
         if self.page == TuiPage.analytics:
             self.analyticsInput(inp)
-        else:
+        elif self.page == TuiPage.homepage:
             self.homepageInput(inp)
+        else:
+            self.infoInput(inp)
+
+    def get_str(self, prompt: str) -> str:
+        s = ""
+        log("Getting str.")
+        while True:
+            print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + s, end='', flush=True)
+            ch = self.term.getch()
+            # Enter
+            if ch == '\n':
+                log(s)
+                return s
+            # Backspace
+            elif ch == chr(263):
+                s = s[:-1]
+            elif ch in string.printable:
+                s += ch
+
+    def get_period(self) -> PeriodLength:
+        while True:
+            p = self.get_str("Period length [d/daily/w/weakly]:")
+            match p.lower():
+                case "d" | "daily":
+                    return PeriodLength.daily
+                case "w" | "weakly":
+                    return PeriodLength.weakly
+
+    def confirm(self, prompt: str) -> bool:
+        log("Confirming...")
+        while True:
+            print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + " [y/n] ", end='', flush=True)
+            match self.term.getch().lower():
+                case "y":
+                    return True
+                case "n":
+                    return False
+
+    def warn(self, warning: str):
+        print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + warning, end='', flush=True)
 
     def analyticsInput(self, inp: str):
         pass
@@ -169,43 +226,17 @@ class Tui:
                 self.getHabits()
                 if self.cursor > 0:
                     self.cursor -= 1
-            case _:
-                pass
+            case '\t':
+                log("Pressed Tab.")
+                # Switch page.
+            case ' ':
+                log("Pressed space.")
+                # Open Habits information
+                self.page = TuiPage.info
 
-    def get_str(self, prompt: str) -> str:
-        s = ""
-        log("Getting str.")
-        while True:
-            print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + s, end='', flush=True)
-            ch = self.term.getch()
-            # Enter
-            if ch == '\n':
-                log(s)
-                return s
-            # Backspace
-            elif ch == chr(263):
-                s = s[:-1]
-            elif ch in string.printable:
-                s += ch
-
-    def get_period(self) -> PeriodLength:
-        while True:
-            p = self.get_str("Period length [d/daily/w/weakly]:")
-            match p.lower():
-                case "d" | "daily":
-                    return PeriodLength.daily
-                case "w" | "weakly":
-                    return PeriodLength.weakly
-
-    def confirm(self, prompt: str) -> bool:
-        log("Confirming...")
-        while True:
-            print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + " [y/n] ", end='', flush=True)
-            match self.term.getch().lower():
-                case "y":
-                    return True
-                case "n":
-                    return False
-
-    def warn(self, warning: str):
-        print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + warning, end='', flush=True)
+    def infoInput(self, inp: str):
+        match inp:
+            case 'q':
+                self.quit = True
+            case ' ' | '\t' | '\n':
+                self.page = TuiPage.homepage

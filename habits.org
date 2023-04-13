@@ -2,15 +2,15 @@
 * TODO T Brush Teeth
 :PROPERTIES:
 :created: [2023-04-12 16:09:00]
-:streak: 2
-:longest_streak: None
+:streak: 0
+:longest streak: None
 :period: Daily
 :END:
 
-* TODO 2 2
+* DONE 2 2
 :PROPERTIES:
 :created: [2023-04-12 16:09:00]
 :streak: 2
-:longest_streak: None
+:longest streak: 2 [2023-04-11 16:09:00];[2023-04-12 16:09:00]
 :period: Daily
 :END:

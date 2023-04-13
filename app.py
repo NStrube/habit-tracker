@@ -58,6 +58,7 @@ class HabitTracker:
         Uses self.storage to read in habits into self.habits.
         """
         # TODO: Ensure habit names are unique
+        # TODO: Check habits for period over
         self.habits = self.storage.read()
 
     def save(self):
@@ -110,3 +111,9 @@ class HabitTracker:
         for h in self.habits:
             if n == repr(h):
                 self.habits.remove(h)
+    
+    def getHabit(self, n: str) -> Habit:
+        for h in self.habits:
+            if n == repr(h):
+                return h
+
