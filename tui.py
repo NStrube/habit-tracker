@@ -82,50 +82,44 @@ class Tui:
     uncompleted: list[str]
 
     def getHabits(self):
+        """
+        Updates the self.completed and self.uncompleted lists.
+        """
         self.uncompleted = self.habit_tracker.get_uncompleted_str()
         self.completed = self.habit_tracker.get_completed_str()
 
     def run(self):
+        """
+        Run the habit tracker.
+
+        Sets up the habit_tracker and terminal,
+        then calls draw and input repeatedly
+        """
         self.habit_tracker = HabitTracker(StorageKind.org, "habits.org")
         self.term = Terminal()
         self.getHabits()
         
         with self.term.fullscreen(), self.term.cbreak():
-            self.draw()
             while not self.quit:
                 # PERF: Potential improvement, only redraw if input warrants it
-                self.input()
                 self.draw()
+                self.input()
 
     def draw(self):
+        """
+        Draw the Tui once.
+        """
         if self.page == TuiPage.homepage:
-            with self.term.hidden_cursor():
-                # TODO: Make it print both page names and the current one in '[]'
-                print(self.term.clear() + self.term.home() + "[" + self.page + "]")
-                printTable(self.term, self.uncompleted, self.completed)
-            if self.on_todos: 
-                cursor_x = 0
-            else: 
-                cursor_x = self.term.width // 2
-            log("cursor: " + repr(cursor_x) + ", " + repr(self.cursor))
-            print(self.term.move_yx(self.cursor + 3, cursor_x), end='', flush=True)
+            self.drawHomepage()
         elif self.page == TuiPage.analytics:
-            pass
+            self.drawAnalytics()
         else:
-            if self.on_todos and self.cursor < len(self.uncompleted):
-                h = self.habit_tracker.getHabit(self.uncompleted[self.cursor])
-            elif not self.on_todos and self.cursor < len(self.completed):
-                h = self.habit_tracker.getHabit(self.completed[self.cursor])
-            else:
-                self.page = TuiPage.homepage
-                # self.draw()
-                return
-            print(self.term.clear() + self.term.home() + "[" + self.page + "]")
-            print()
-            print(h)
-
+            self.drawInfopage()
 
     def input(self):
+        """
+        Handle one input.
+        """
         inp = self.term.inkey().lower()
         log("input: " + inp)
         if self.page == TuiPage.analytics:
@@ -136,6 +130,9 @@ class Tui:
             self.infoInput(inp)
 
     def get_str(self, prompt: str) -> str:
+        """
+        Helper method to prompt the user for a string.
+        """
         s = ""
         log("Getting str.")
         while True:
@@ -152,6 +149,9 @@ class Tui:
                 s += ch
 
     def get_period(self) -> PeriodLength:
+        """
+        Helper method to prompt user for a PeriodLength.
+        """
         while True:
             p = self.get_str("Period length [d/daily/w/weakly]:")
             match p.lower():
@@ -161,6 +161,9 @@ class Tui:
                     return PeriodLength.weakly
 
     def confirm(self, prompt: str) -> bool:
+        """
+        Helper method to prompt user to confirm their choice.
+        """
         log("Confirming...")
         while True:
             print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + " [y/n] ", end='', flush=True)
@@ -171,12 +174,26 @@ class Tui:
                     return False
 
     def warn(self, warning: str):
+        """
+        Helper function to warn the user.
+        """
         print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + warning, end='', flush=True)
 
     def analyticsInput(self, inp: str):
-        pass
+        """
+        The inputs for the analytics page.
+        """
+        match inp:
+            case 'q':
+                self.quit = True
+            case ' ' | '\t' | '\n':
+                self.page = TuiPage.homepage
 
     def homepageInput(self, inp: str):
+        """
+        The inputs for the home page.
+        """
+        # TODO: Filtering
         match inp:
             case 'q':
                 self.quit = True
@@ -229,14 +246,81 @@ class Tui:
             case '\t':
                 log("Pressed Tab.")
                 # Switch page.
+                self.page = TuiPage.analytics
             case ' ':
                 log("Pressed space.")
                 # Open Habits information
                 self.page = TuiPage.info
+            case 'f':
+                log("Pressed f.")
 
     def infoInput(self, inp: str):
+        """
+        The inputs for the habit info page.
+        """
         match inp:
             case 'q':
                 self.quit = True
             case ' ' | '\t' | '\n':
                 self.page = TuiPage.homepage
+
+    def drawHeader(self):
+        """
+        Draws the header.
+        """
+        if self.page == TuiPage.homepage:
+            print(self.term.clear() + self.term.home() + "[" + TuiPage.homepage + "] " + TuiPage.analytics)
+        else:
+            print(self.term.clear() + self.term.home() + ' ' + TuiPage.homepage + " [" + TuiPage.analytics + "]")
+
+    def drawHomepage(self):
+        """
+        Draws the home page.
+        """
+        with self.term.hidden_cursor():
+            self.drawHeader()
+            printTable(self.term, self.uncompleted, self.completed)
+        if self.on_todos: 
+            cursor_x = 0
+        else: 
+            cursor_x = self.term.width // 2
+        log("cursor: " + repr(cursor_x) + ", " + repr(self.cursor))
+        print(self.term.move_yx(self.cursor + 3, cursor_x), end='', flush=True)
+
+    def drawAnalytics(self):
+        """
+        Draws the analytics page.
+        """
+        with self.term.hidden_cursor():
+            self.drawHeader()
+            print(f"Total number of habits: {len(self.habit_tracker.habits)}")
+            # TODO: better way of saying this?
+            print(f"Completed habits: {len(self.completed)}")
+            print(f"Daily habits: {self.habit_tracker.nrDailyHabits()}")
+            print(f"Weakly habits: {self.habit_tracker.nrWeaklyHabits()}")
+            print("")
+
+            print(f"Current longest streak: {self.habit_tracker.currentLongestStreak()}")
+            print(f"Current longest daily habit streak: {self.habit_tracker.currentLongestDailyStreak()}")
+            print(f"Current longest weakly habit streak: {self.habit_tracker.currentLongestWeaklyStreak()}")
+            print("")
+
+            print(f"Longest ever streak: {self.habit_tracker.longestEverStreak()}")
+            print(f"Longest ever daily habit streak: {self.habit_tracker.currentLongestDailyStreak()}")
+            print(f"Longest ever weakly habit streak: {self.habit_tracker.currentLongestWeaklyStreak()}")
+
+    def drawInfopage(self):
+        """
+        Draws the habit info page.
+        """
+        if self.on_todos and self.cursor < len(self.uncompleted):
+            h = self.habit_tracker.getHabit(self.uncompleted[self.cursor])
+        elif not self.on_todos and self.cursor < len(self.completed):
+            h = self.habit_tracker.getHabit(self.completed[self.cursor])
+        else:
+            self.page = TuiPage.homepage
+            # self.draw()
+            return
+        print(self.term.clear() + self.term.home() + "[" + self.page + "]")
+        print()
+        print(h)

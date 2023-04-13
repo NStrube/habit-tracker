@@ -117,3 +117,70 @@ class HabitTracker:
             if n == repr(h):
                 return h
 
+    def nrDailyHabits(self) -> int:
+        i = 0
+        for h in self.habits:
+            if h.period_length == PeriodLength.daily:
+                i += 1
+        return i
+
+    def nrWeaklyHabits(self) -> int:
+        i = 0
+        for h in self.habits:
+            if h.period_length == PeriodLength.weakly:
+                i += 1
+        return i
+
+    def currentLongestStreak(self) -> str:
+        longest = 0
+        s = ""
+        for h in self.habits:
+            if h.streak_length > longest:
+                longest = h.streak_length
+                s = f"{h.name}: {h.streak_length}"
+        return longest
+
+    def currentLongestDailyStreak(self) -> str:
+        longest = 0
+        s = ""
+        for h in self.habits:
+            if h.period_length == PeriodLength.daily and h.streak_length > longest:
+                longest = h.streak_length
+                s = f"{h.name}: {h.streak_length}"
+        return longest
+
+    def currentLongestWeaklyStreak(self) -> str:
+        longest = 0
+        s = ""
+        for h in self.habits:
+            if h.period_length == PeriodLength.weakly and h.streak_length > longest:
+                longest = h.streak_length
+                s = f"{h.name}: {h.streak_length}"
+        return longest
+
+    def longestEverStreak(self) -> str:
+        longest: int = 0
+        s: str = ""
+        for h in self.habits:
+            if h.longest_streak is not None and h.longest_streak.length > longest:
+                longest = h.longest_streak.length
+                s = f"{h.name}: {h.longest_streak}"
+        return longest
+
+    def longestEverDailyStreak(self) -> str:
+        longest: int = 0
+        s: str = ""
+        for h in self.habits:
+            if h.longest_streak is not None and h.period_length == PeriodLength.daily and h.longest_streak.length > longest:
+                longest = h.longest_streak.length
+                s = f"{h.name}: {h.longest_streak}"
+        return longest
+
+    def longestEverWeaklyStreak(self) -> str:
+        longest: int = 0
+        s: str = ""
+        for h in self.habits:
+            if h.longest_streak is not None and h.period_length == PeriodLength.weakly and h.longest_streak.length > longest:
+                longest = h.longest_streak.length
+                s = f"{h.name}: {h.longest_streak}"
+        return longest
