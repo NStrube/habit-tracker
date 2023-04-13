@@ -103,5 +103,10 @@ class HabitTracker:
                 log("After marked:\n" + str(h))
                 break
 
-    def addTodo(self, name: str, symbol: str, period_length: PeriodLength):
+    def addHabit(self, name: str, symbol: str, period_length: PeriodLength):
         self.habits.append(Habit.new(name, symbol, period_length))
+
+    def deleteHabit(self, n: str):
+        for h in self.habits:
+            if n == repr(h):
+                self.habits.remove(h)

@@ -147,13 +147,28 @@ class Tui:
                     if self.cursor > 0:
                         self.cursor -= 1
                 self.getHabits()
-            case '+':
+            case '+' | '=':
                 log("Pressed +.")
                 name = self.get_str("Name: ")
                 symbol = self.get_str("Symbol: ")
                 period = self.get_period()
-                self.habit_tracker.addTodo(name, symbol, period)
+                self.habit_tracker.addHabit(name, symbol, period)
                 self.getHabits()
+            case '-' | '_':
+                log("Pressed -.")
+                if self.on_todos and len(self.uncompleted) > 0:
+                    if not self.confirm(f"Are you sure you want to delete '{self.uncompleted[self.cursor]}'"):
+                        return
+                    log(f"Deleting {self.uncompleted[self.cursor]}...")
+                    self.habit_tracker.deleteHabit(self.uncompleted[self.cursor])
+                elif not self.on_todos and len(self.completed):
+                    if not self.confirm(f"Are you sure you want to delete '{self.completed[self.cursor]}'"):
+                        return
+                    log(f"Deleting {self.completed[self.cursor]}...")
+                    self.habit_tracker.deleteHabit(self.completed[self.cursor])
+                self.getHabits()
+                if self.cursor > 0:
+                    self.cursor -= 1
             case _:
                 pass
 
@@ -161,11 +176,11 @@ class Tui:
         s = ""
         log("Getting str.")
         while True:
-            log("Str: " + s)
             print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + s, end='', flush=True)
             ch = self.term.getch()
             # Enter
             if ch == '\n':
+                log(s)
                 return s
             # Backspace
             elif ch == chr(263):
@@ -181,5 +196,16 @@ class Tui:
                     return PeriodLength.daily
                 case "w" | "weakly":
                     return PeriodLength.weakly
-                case _:
-                    continue
+
+    def confirm(self, prompt: str) -> bool:
+        log("Confirming...")
+        while True:
+            print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + " [y/n] ", end='', flush=True)
+            match self.term.getch().lower():
+                case "y":
+                    return True
+                case "n":
+                    return False
+
+    def warn(self, warning: str):
+        print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + warning, end='', flush=True)
