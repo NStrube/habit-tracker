@@ -1,5 +1,7 @@
 from blessed import Terminal
 from enum import StrEnum
+from typing import Optional
+from itertools import zip_longest
 import string
 
 from app import HabitTracker
@@ -24,25 +26,7 @@ def printTable(term: Terminal, lhs: list[str], rhs: list[str]):
     printRow(term, "TODO", "DONE")
     # divider
     print(term.ljust('', fillchar='-'))
-
-    # If one list longer than other
-    length = 0
-    if len(lhs) >= len(rhs):
-        length = len(lhs)
-    else:
-        length = len(rhs)
-
-    for i in range(length):
-        l = ""
-        r = ""
-        # If one list longer than other
-        # Could also pad the other but eh
-        if i < len(lhs):
-            l = lhs[i]
-
-        if i < len(rhs):
-            r = rhs[i]
-
+    for l, r in zip_longest(lhs, rhs, fillvalue=""):
         printRow(term, l, r)
 
 # Why print rows instead of columns?
@@ -76,6 +60,7 @@ class Tui:
     quit: bool = False
     cursor: int = 0
     on_todos: bool = True
+    filter: Optional[PeriodLength] = None
 
     habit_tracker: HabitTracker
     completed: list[str]
@@ -101,7 +86,6 @@ class Tui:
         
         with self.term.fullscreen(), self.term.cbreak():
             while not self.quit:
-                # PERF: Potential improvement, only redraw if input warrants it
                 self.draw()
                 self.input()
 
@@ -193,7 +177,6 @@ class Tui:
         """
         The inputs for the home page.
         """
-        # TODO: Filtering
         match inp:
             case 'q':
                 self.quit = True
@@ -250,9 +233,17 @@ class Tui:
             case ' ':
                 log("Pressed space.")
                 # Open Habits information
+                # TODO: If filter, doesn't work correctly
                 self.page = TuiPage.info
             case 'f':
                 log("Pressed f.")
+                if self.filter == None:
+                    self.filter = PeriodLength.daily
+                elif self.filter == PeriodLength.daily:
+                    self.filter = PeriodLength.weakly
+                else:
+                    self.filter = None
+
 
     def infoInput(self, inp: str):
         """
@@ -277,9 +268,12 @@ class Tui:
         """
         Draws the home page.
         """
+        todo, done = self.apply_filter()
+
         with self.term.hidden_cursor():
             self.drawHeader()
-            printTable(self.term, self.uncompleted, self.completed)
+            printTable(self.term, todo, done)
+            self.warn(f"Filtering: {self.filter}")
         if self.on_todos: 
             cursor_x = 0
         else: 
@@ -306,8 +300,8 @@ class Tui:
             print("")
 
             print(f"Longest ever streak: {self.habit_tracker.longestEverStreak()}")
-            print(f"Longest ever daily habit streak: {self.habit_tracker.currentLongestDailyStreak()}")
-            print(f"Longest ever weakly habit streak: {self.habit_tracker.currentLongestWeaklyStreak()}")
+            print(f"Longest ever daily habit streak: {self.habit_tracker.longestEverDailyStreak()}")
+            print(f"Longest ever weakly habit streak: {self.habit_tracker.longestEverWeaklyStreak()}")
 
     def drawInfopage(self):
         """
@@ -324,3 +318,19 @@ class Tui:
         print(self.term.clear() + self.term.home() + "[" + self.page + "]")
         print()
         print(h)
+
+    def apply_filter(self) -> tuple[list[str], list[str]]:
+        """
+        Applies the filter for periodicity.
+        """
+        log(f"Filter: {self.filter}")
+        if self.filter is None:
+            return [self.uncompleted, self.completed]
+        elif self.filter == PeriodLength.daily:
+            daily = self.habit_tracker.get_daily()
+            return [[repr(d) for d in daily if not d.completed],\
+                    [repr(d) for d in daily if d.completed]]
+        else:
+            weakly = self.habit_tracker.get_weakly()
+            return [[repr(w) for w in weakly if not w.completed],\
+                    [repr(w) for w in weakly if w.completed]]
