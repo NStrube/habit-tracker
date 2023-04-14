@@ -1,16 +1,29 @@
 
-* TODO T Brush Teeth
+* DONE T Brush Teeth
 :PROPERTIES:
 :created: [2023-04-12 16:09:00]
-:streak: 0
-:longest streak: None
+:streak: 1
+:longest streak: 1 [2023-04-14 16:34:46];[2023-04-14 16:34:46]
 :period: Daily
 :END:
+- [2023-04-14 16:34:46]
 
-* DONE 2 2
+* TODO 2 2
 :PROPERTIES:
-:created: [2023-04-12 16:09:00]
-:streak: 2
+:created: [2023-04-11 16:09:00]
+:streak: 0
 :longest streak: 2 [2023-04-11 16:09:00];[2023-04-12 16:09:00]
 :period: Daily
 :END:
+- [2023-04-11 16:09:00]
+- [2023-04-12 16:09:00]
+
+* DONE 3 3
+:PROPERTIES:
+:created: [2023-04-05 16:09:00]
+:streak: 2
+:longest streak: 2 [2023-04-05 16:09:00];[2023-04-12 16:09:00]
+:period: Weakly
+:END:
+- [2023-04-05 16:09:00]
+- [2023-04-12 16:09:00]

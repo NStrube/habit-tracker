@@ -70,6 +70,7 @@ class Tui:
         """
         Updates the self.completed and self.uncompleted lists.
         """
+        self.habit_tracker.update()
         self.uncompleted = self.habit_tracker.get_uncompleted_str()
         self.completed = self.habit_tracker.get_completed_str()
 
@@ -83,6 +84,8 @@ class Tui:
         self.habit_tracker = HabitTracker(StorageKind.org, "habits.org")
         self.term = Terminal()
         self.getHabits()
+        for h in self.habit_tracker.habits:
+            log(repr(h))
         
         with self.term.fullscreen(), self.term.cbreak():
             while not self.quit:
@@ -105,7 +108,7 @@ class Tui:
         Handle one input.
         """
         inp = self.term.inkey().lower()
-        log("input: " + inp)
+        # log("input: " + inp)
         if self.page == TuiPage.analytics:
             self.analyticsInput(inp)
         elif self.page == TuiPage.homepage:
@@ -118,13 +121,13 @@ class Tui:
         Helper method to prompt the user for a string.
         """
         s = ""
-        log("Getting str.")
+        # log("Getting str.")
         while True:
             print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + s, end='', flush=True)
             ch = self.term.getch()
             # Enter
             if ch == '\n':
-                log(s)
+                # log(s)
                 if len(s) > 0:
                     return s
             # Backspace
@@ -149,7 +152,7 @@ class Tui:
         """
         Helper method to prompt user to confirm their choice.
         """
-        log("Confirming...")
+        # log("Confirming...")
         while True:
             print(self.term.move_xy(0, self.term.height - 1) + self.term.clear_eol() + prompt + " [y/n] ", end='', flush=True)
             match self.term.getch().lower():
@@ -171,6 +174,13 @@ class Tui:
         match inp:
             case 'q':
                 self.quit = True
+            case 'o':
+                log("Pressed 'o'")
+                self.habit_tracker.read()
+                self.getHabits()
+            case 's':
+                log("Pressed 's'")
+                self.habit_tracker.save()
             case ' ' | '\t' | '\n':
                 self.page = TuiPage.homepage
 
@@ -181,9 +191,16 @@ class Tui:
         match inp:
             case 'q':
                 self.quit = True
+            case 'o':
+                log("Pressed 'o'")
+                self.habit_tracker.read()
+                self.getHabits()
+            case 's':
+                log("Pressed 's'")
+                self.habit_tracker.save()
             case 'h' | 'l' | 'key_right' | 'key_left':
                 self.on_todos = not self.on_todos
-                log("On Todo: " + repr(self.on_todos))
+                # log("On Todo: " + repr(self.on_todos))
                 if self.on_todos and self.cursor > len(self.uncompleted) - 1:
                     self.cursor = len(self.uncompleted) - 1
                 elif not self.on_todos and self.cursor > len(self.completed) - 1:
@@ -191,7 +208,7 @@ class Tui:
                 if self.cursor < 0:
                     self.cursor = 0
             case 'j' | 'key_down':
-                log(f"Press j: on todo: {self.on_todos}; cursor: {self.cursor}; len: {len(self.uncompleted)}")
+                # log(f"Press j: on todo: {self.on_todos}; cursor: {self.cursor}; len: {len(self.uncompleted)}")
                 if self.on_todos and self.cursor < len(self.uncompleted) - 1\
                         or not self.on_todos and self.cursor < len(self.completed) - 1:
                     self.cursor += 1
@@ -199,14 +216,14 @@ class Tui:
                 if self.cursor > 0:
                     self.cursor -= 1
             case '\n':
-                log("Pressed enter.")
+                # log("Pressed enter.")
                 if self.on_todos and len(self.uncompleted) > 0:
                     self.habit_tracker.complete(self.uncompleted[self.cursor])
                     if self.cursor > 0:
                         self.cursor -= 1
                 self.getHabits()
             case '+' | '=':
-                log("Pressed +.")
+                # log("Pressed +.")
                 name = self.get_str("Name: ")
                 while not self.habit_tracker.check_name_unique(name):
                     name = self.get_str("(Err: Not Unique) Name:")
@@ -215,31 +232,31 @@ class Tui:
                 self.habit_tracker.addHabit(name, symbol, period)
                 self.getHabits()
             case '-' | '_':
-                log("Pressed -.")
+                # log("Pressed -.")
                 if self.on_todos and len(self.uncompleted) > 0:
                     if not self.confirm(f"Are you sure you want to delete '{self.uncompleted[self.cursor]}'"):
                         return
-                    log(f"Deleting {self.uncompleted[self.cursor]}...")
+                    # log(f"Deleting {self.uncompleted[self.cursor]}...")
                     self.habit_tracker.deleteHabit(self.uncompleted[self.cursor])
                 elif not self.on_todos and len(self.completed):
                     if not self.confirm(f"Are you sure you want to delete '{self.completed[self.cursor]}'"):
                         return
-                    log(f"Deleting {self.completed[self.cursor]}...")
+                    # log(f"Deleting {self.completed[self.cursor]}...")
                     self.habit_tracker.deleteHabit(self.completed[self.cursor])
                 self.getHabits()
                 if self.cursor > 0:
                     self.cursor -= 1
             case '\t':
-                log("Pressed Tab.")
+                # log("Pressed Tab.")
                 # Switch page.
                 self.page = TuiPage.analytics
             case ' ':
-                log("Pressed space.")
+                # log("Pressed space.")
                 # Open Habits information
                 # TODO: If filter, doesn't work correctly
                 self.page = TuiPage.info
             case 'f':
-                log("Pressed f.")
+                # log("Pressed f.")
                 if self.filter == None:
                     self.filter = PeriodLength.daily
                 elif self.filter == PeriodLength.daily:
@@ -255,6 +272,13 @@ class Tui:
         match inp:
             case 'q':
                 self.quit = True
+            case 'o':
+                log("Pressed 'o'")
+                self.habit_tracker.read()
+                self.getHabits()
+            case 's':
+                log("Pressed 's'")
+                self.habit_tracker.save()
             case ' ' | '\t' | '\n':
                 self.page = TuiPage.homepage
 
@@ -281,7 +305,7 @@ class Tui:
             cursor_x = 0
         else: 
             cursor_x = self.term.width // 2
-        log("cursor: " + repr(cursor_x) + ", " + repr(self.cursor))
+        # log("cursor: " + repr(cursor_x) + ", " + repr(self.cursor))
         print(self.term.move_yx(self.cursor + 3, cursor_x), end='', flush=True)
 
     def drawAnalytics(self):
@@ -318,22 +342,27 @@ class Tui:
             self.page = TuiPage.homepage
             # self.draw()
             return
+        if h == None:
+            sys.exit("Unreachable: Got None when trying to get habit for info page.")
         print(self.term.clear() + self.term.home() + "[" + self.page + "]")
         print()
         print(h)
+        print("Completed at:")
+        for ct in h.completed_times:
+            print(f"- [{str(ct)}]")
 
     def apply_filter(self) -> tuple[list[str], list[str]]:
         """
         Applies the filter for periodicity.
         """
-        log(f"Filter: {self.filter}")
+        # log(f"Filter: {self.filter}")
         if self.filter is None:
-            return [self.uncompleted, self.completed]
+            return (self.uncompleted, self.completed)
         elif self.filter == PeriodLength.daily:
             daily = self.habit_tracker.get_daily()
-            return [[repr(d) for d in daily if not d.completed],\
-                    [repr(d) for d in daily if d.completed]]
+            return ([repr(d) for d in daily if not d.completed],\
+                    [repr(d) for d in daily if d.completed])
         else:
             weakly = self.habit_tracker.get_weakly()
-            return [[repr(w) for w in weakly if not w.completed],\
-                    [repr(w) for w in weakly if w.completed]]
+            return ([repr(w) for w in weakly if not w.completed],\
+                    [repr(w) for w in weakly if w.completed])

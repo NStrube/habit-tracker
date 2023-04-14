@@ -1,9 +1,4 @@
-from habit import Habit, PeriodLength
-from storage import StorageKind
-from app import HabitTracker
 from tui import Tui
-
-from storage import OrgStorage
 
 # TODO:
 # ╭―――――――――――――――――――――――――――╮
@@ -14,20 +9,17 @@ from storage import OrgStorage
 #
 # Or any sane language, really
 
-# Mypy not recognizing Exception
+# Mypy not recognizing Exceptions
+# TODO: Docs
+# TODO: Cleanup
+# TODO: Json storage
+
+# Maybe at some point
+# - Save as, read from
+# - Use cLi args
+# - Rename habits
+# - Better naming
+# - Exception (raising and handling?)
 if __name__ == "__main__":
-    d = Habit.new("Daily", "D", PeriodLength.daily)
-    print(d)
-
-    w = Habit.new("Weakly", "W", PeriodLength.weakly)
-    print(w)
-
-    print()
-    print()
-    print()
-
-    app = HabitTracker(StorageKind.org, "habits.org")
-
-    app.save()
-
-    Tui().run()
+    t = Tui()
+    t.run()

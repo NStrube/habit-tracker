@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional, Literal
 from enum import StrEnum
 
+from log import log
 
 class PeriodLength(StrEnum):
     """
@@ -89,11 +90,12 @@ class Habit():
         self.name = name
         self.symbol = symbol
         self.period_length = period_length
-        self.creation_date = creation_date
+        self.creation_date = creation_date.replace(microsecond=0)
         self.streak_length = streak_length
         self.longest_streak = longest_streak
         self.completed = completed
         self.completed_times = completed_times
+        self.completed_times.sort()
 
     @staticmethod
     def new(name: str, symbol: str, period_length: PeriodLength) -> Habit:
@@ -117,3 +119,10 @@ Creation Date: {self.creation_date}"""
 
     def __repr__(self):
         return f"{self.symbol} {self.name}: {self.period_length}, Streak: {self.streak_length}"
+
+    def last_completed_date(self) -> Optional[datetime]:
+        log(f"Lcd(): {self.completed_times}")
+        if self.completed_times is None or len(self.completed_times) == 0:
+            return None
+        return self.completed_times[-1]
+

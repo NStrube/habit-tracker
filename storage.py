@@ -1,9 +1,10 @@
 import abc
-from typing import Protocol
+from typing import Protocol, Optional
 from habit import Habit, PeriodLength, StreakPeriod
 from pathlib import Path
 from enum import StrEnum
 from datetime import datetime
+import sys
 
 from log import log
 
@@ -57,8 +58,7 @@ class OrgStorage:
         if so sets self.file to given file.
         """
         if not Path(file).suffix == ".org":
-            print(f"WrongFileFormat: {file}")
-            return
+            sys.exit(f"Wrong File Format: Expected org, got: {file}")
         self.file = Path(file)
 
     def read(self) -> list[Habit]:
@@ -79,9 +79,16 @@ class OrgStorage:
 
         AlreadyAdded = False
 
+        def hb(read_ls: bool, completed_times: list[datetime]) -> Optional[Habit]:
+            # log("hb compl times: " + str(completed_times))
+            if not AlreadyAdded and name and symbol and period and created and streak is not None and read_ls and completed is not None:
+                read_ls = False
+                return Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
+            return None
+
         for line in f:
-            log(f"'{line.rstrip()}': read_ls: {read_ls}")
-            log("\n\nLocals:\n" + repr(locals()) + "\n\n")
+            # log(f"'{line.rstrip()}': read_ls: {read_ls}")
+            # log("\n\nLocals:\n" + repr(locals()) + "\n\n")
             # NOTE: line keeps newline character
             if line.startswith(':PROP') or line.startswith(':END') or line.startswith('# '):
                 continue
@@ -89,11 +96,10 @@ class OrgStorage:
             # Completed, symbol, name
             elif line.startswith('* '):
                 # NOTE: Only relevant if not newline separated Habits
-                # TODO: Raise exception if not ... ?
-                if not AlreadyAdded and name and symbol and period and created and streak is not None and read_ls and completed is not None:
-                    read_ls = False
-                    new_habit = Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
-                    habits.append(new_habit)
+                h = hb(read_ls, completed_times)
+                if not AlreadyAdded and h is not None:
+                    habits.append(h)
+                    completed_times = list()
                 AlreadyAdded = False
 
                 [_, _,rest] = line.partition(' ')
@@ -105,7 +111,7 @@ class OrgStorage:
                 elif t == "DONE":
                     completed = True
                 else:
-                    print(f"Unkown completed state in file: {self.file}")
+                    sys.exit(f"Unkown completed state in file: {self.file}")
 
             # Creation date
             elif line.startswith(':created: ['):
@@ -127,11 +133,11 @@ class OrgStorage:
                     continue
                 nr, _, rest = rest.partition(' ')
                 d1, _, d2 = rest.partition(';')
-                log("d1 " + d1)
-                log("d1 slice" + d1[1:-1])
+                # log("d1 " + d1)
+                # log("d1 slice" + d1[1:-1])
                 dt1 = datetime.strptime(d1[1:-1], "%Y-%m-%d %H:%M:%S")
-                log("d2" + d2)
-                log("d2 slice" + d2[1:-2])
+                # log("d2" + d2)
+                # log("d2 slice" + d2[1:-2])
                 dt2 = datetime.strptime(d2[1:-2], "%Y-%m-%d %H:%M:%S")
                 longest_streak = StreakPeriod(int(nr), dt1, dt2)
 
@@ -144,27 +150,27 @@ class OrgStorage:
                 elif l == "Weakly":
                     period = PeriodLength.weakly
                 else:
-                    print(f"Unkown PeriodLength in file: {self.file}")
+                    sys.exit(f"Unkown PeriodLength in file: {self.file}")
 
             # Completed times
             elif line.startswith('- '):
-                print("Impl completed times")
-
+                _, _, dt = line.partition(' ')
+                # log(dt)
+                completed_times.append(datetime.strptime(dt[1:-2], "%Y-%m-%d %H:%M:%S"))
+                # sys.exit("Impl completed times")
 
             elif line.strip() == "":
-                # TODO: Raise exception if not ... ?
-                if name and symbol and period and created and streak is not None and read_ls and completed is not None:
-                    read_ls = False
-                    new_habit = Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
-                    habits.append(new_habit)
+                h = hb(read_ls, completed_times)
+                if h is not None:
+                    habits.append(h)
                     AlreadyAdded = True
+                    completed_times = list()
 
         f.close()
 
-        # TODO: Raise exception if not ... ?
-        if name and symbol and period and created and streak is not None and read_ls and completed is not None:
-            new_habit = Habit(name, symbol, period, created, streak, completed, completed_times, longest_streak)
-            habits.append(new_habit)
+        h = hb(read_ls, completed_times)
+        if h is not None:
+            habits.append(h)
 
         return habits
 
@@ -172,7 +178,7 @@ class OrgStorage:
         f = open(self.file, "w")
         
         for h in habits:
-            print(h)
+            # log(str(h))
             if h.completed:
                 t = "DONE"
             else:
@@ -188,6 +194,7 @@ class OrgStorage:
 """
             f.write(org)
             for time in h.completed_times:
-                f.write(f"- [{time}]")
+                time = time.replace(microsecond=0)
+                f.write(f"- [{time}]\n")
 
         f.close()
