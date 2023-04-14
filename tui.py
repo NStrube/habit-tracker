@@ -125,7 +125,8 @@ class Tui:
             # Enter
             if ch == '\n':
                 log(s)
-                return s
+                if len(s) > 0:
+                    return s
             # Backspace
             elif ch == chr(263):
                 s = s[:-1]
@@ -207,6 +208,8 @@ class Tui:
             case '+' | '=':
                 log("Pressed +.")
                 name = self.get_str("Name: ")
+                while not self.habit_tracker.check_name_unique(name):
+                    name = self.get_str("(Err: Not Unique) Name:")
                 symbol = self.get_str("Symbol: ")
                 period = self.get_period()
                 self.habit_tracker.addHabit(name, symbol, period)

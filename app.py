@@ -3,6 +3,7 @@ from storage import StorageInterface, StorageKind, OrgStorage
 from pathlib import Path
 from typing import Optional
 from datetime import datetime
+import sys
 
 from log import log
 
@@ -64,9 +65,11 @@ class HabitTracker:
         """
         Uses self.storage to read in habits into self.habits.
         """
-        # TODO: Ensure habit names are unique
         # TODO: Check habits for period over
         self.habits = self.storage.read()
+        if not self.check_names_unique():
+            # Ensure habit names are unique
+            sys.exit("A habit name is not unique. Pls fix.")
 
     def save(self):
         """
@@ -178,3 +181,14 @@ class HabitTracker:
 
     def get_daily(self) -> list[Habit]:
         return [h for h in self if h.period_length == PeriodLength.daily]
+
+    def check_names_unique(self) -> bool:
+        names = [h.name for h in self]
+        for n in names:
+            if names.count(n) != 1:
+                return False
+        return True
+            
+    def check_name_unique(self, n: str) -> bool:
+        return len([1 for h in self if h.name == n]) == 0
+            
