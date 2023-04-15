@@ -1,8 +1,9 @@
+"""This provides the habit class for the habit tracker."""
 # NOTE: Used for returning Habit inside definition
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Literal
+from typing import Optional
 from enum import StrEnum
 
 from log import log
@@ -13,10 +14,10 @@ class PeriodLength(StrEnum):
 
     Current supported values:
         daily
-        weakly
+        weekly
     """
     daily = "Daily"
-    weakly = "Weakly"
+    weekly = "Weakly"
 
 class StreakPeriod:
     """
@@ -69,6 +70,11 @@ class Habit():
         This could be removed but since python is slow used for quick checking.
     completed_times: list[datetime]
         A list of datetimes storing every time a habit was completed.
+
+    Methods
+    -------
+    new(name: str, symbol: str, period_length: PeriodLength) -> Habit
+    last_completed_date() -> Optional[datetime]
     """
     name: str
     symbol: str
@@ -121,6 +127,10 @@ Creation Date: {self.creation_date}"""
         return f"{self.symbol} {self.name}: {self.period_length}, Streak: {self.streak_length}"
 
     def last_completed_date(self) -> Optional[datetime]:
+        """
+        A helper function that returns the last time a Habit was completed.
+        If the habit was never completed, returns None.
+        """
         log(f"Lcd(): {self.completed_times}")
         if self.completed_times is None or len(self.completed_times) == 0:
             return None

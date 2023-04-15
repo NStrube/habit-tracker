@@ -1,3 +1,4 @@
+"""This module is the entry point for the habit tracker."""
 from tui import Tui
 
 # TODO:
@@ -10,9 +11,9 @@ from tui import Tui
 # Or any sane language, really
 
 # Mypy not recognizing Exceptions
-# TODO: Docs
 # TODO: Cleanup
 # TODO: Json storage
+# TODO: Use filter() method?
 
 # Maybe at some point
 # - Save as, read from
@@ -23,3 +24,5 @@ from tui import Tui
 if __name__ == "__main__":
     t = Tui()
     t.run()
+
+# NOTE: I do not know if how I document stuff is correct/good.

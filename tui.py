@@ -1,8 +1,11 @@
-from blessed import Terminal
+"""This method provides the TUI for the habit tracker."""
 from enum import StrEnum
 from typing import Optional
 from itertools import zip_longest
 import string
+import sys
+
+from blessed import Terminal
 
 from app import HabitTracker
 from storage import StorageKind
@@ -17,23 +20,32 @@ class TuiPage(StrEnum):
     Possible values:
         homepage
         analytics
+        info
     """
     homepage = "Home Page"
     analytics = "Analytics"
     info = "Habit Information"
 
 def printTable(term: Terminal, lhs: list[str], rhs: list[str]):
+    """
+    Prints a table with 2 columns (lhs and rhs) on term
+    """
     printRow(term, "TODO", "DONE")
     # divider
     print(term.ljust('', fillchar='-'))
     for l, r in zip_longest(lhs, rhs, fillvalue=""):
         printRow(term, l, r)
 
+# NOTE:
 # Why print rows instead of columns?
 # Terminal draws from top to bottom, left ro right,
 # thus better to go left to right, than down.
 # With columns have to go to middle for every rhs with isn't great..
 def printRow(term: Terminal, lhs: str, rhs: str):
+    """
+    Prints a row of a table with lhs on the complete left and rhs starting in the middle
+    of the terminal.
+    """
     w = term.width // 2
     print(term.move_x(0) + term.ljust(term.truncate(lhs, width=w - 3), width=w - 3) + " | "\
            + term.ljust(term.truncate(rhs, width=w), width=w))
@@ -45,15 +57,33 @@ class Tui:
     Atttributes
     -----------
     page: TuiPage
-    habit_tracker: HabitTracker
     term: Terminal
     quit: bool
+    cursor: int
+    on_todos: bool
+    filter: Optional[PeriodLength]
+
+    habit_tracker: HabitTracker
+    completed: list[str]
+    uncompleted: list[str]
 
     Methods
     -------
-    run():
-    draw():
-    input():
+    run()
+    draw()
+    input()
+    getHabits()
+    get_str(prompt: str) -> str
+    get_period() -> PeriodLength
+    confirm() -> bool
+    warn(warning: str)
+    analyticsInput(inp: str)
+    homepageInput(inp: str)
+    infoInput(inp: str)
+    drawHomepage()
+    drawAnalytics()
+    drawInfopage()
+    apply_filter() -> tuple[list[str], list[str]]
     """
     page: TuiPage = TuiPage.homepage
     term: Terminal
@@ -141,12 +171,12 @@ class Tui:
         Helper method to prompt user for a PeriodLength.
         """
         while True:
-            p = self.get_str("Period length [d/daily/w/weakly]:")
+            p = self.get_str("Period length [d/daily/w/weekly]:")
             match p.lower():
                 case "d" | "daily":
                     return PeriodLength.daily
-                case "w" | "weakly":
-                    return PeriodLength.weakly
+                case "w" | "weekly":
+                    return PeriodLength.weekly
 
     def confirm(self, prompt: str) -> bool:
         """
@@ -205,8 +235,7 @@ class Tui:
                     self.cursor = len(self.uncompleted) - 1
                 elif not self.on_todos and self.cursor > len(self.completed) - 1:
                     self.cursor = len(self.completed) - 1
-                if self.cursor < 0:
-                    self.cursor = 0
+                max(self.cursor, 0)
             case 'j' | 'key_down':
                 # log(f"Press j: on todo: {self.on_todos}; cursor: {self.cursor}; len: {len(self.uncompleted)}")
                 if self.on_todos and self.cursor < len(self.uncompleted) - 1\
@@ -257,10 +286,10 @@ class Tui:
                 self.page = TuiPage.info
             case 'f':
                 # log("Pressed f.")
-                if self.filter == None:
+                if self.filter is None:
                     self.filter = PeriodLength.daily
                 elif self.filter == PeriodLength.daily:
-                    self.filter = PeriodLength.weakly
+                    self.filter = PeriodLength.weekly
                 else:
                     self.filter = None
 
@@ -323,12 +352,12 @@ class Tui:
 
             print(f"Current longest streak: {self.habit_tracker.currentLongestStreak()}")
             print(f"Current longest daily habit streak: {self.habit_tracker.currentLongestDailyStreak()}")
-            print(f"Current longest weakly habit streak: {self.habit_tracker.currentLongestWeaklyStreak()}")
+            print(f"Current longest weekly habit streak: {self.habit_tracker.currentLongestWeaklyStreak()}")
             print("")
 
             print(f"Longest ever streak: {self.habit_tracker.longestEverStreak()}")
             print(f"Longest ever daily habit streak: {self.habit_tracker.longestEverDailyStreak()}")
-            print(f"Longest ever weakly habit streak: {self.habit_tracker.longestEverWeaklyStreak()}")
+            print(f"Longest ever weekly habit streak: {self.habit_tracker.longestEverWeaklyStreak()}")
 
     def drawInfopage(self):
         """
@@ -342,7 +371,7 @@ class Tui:
             self.page = TuiPage.homepage
             # self.draw()
             return
-        if h == None:
+        if h is None:
             sys.exit("Unreachable: Got None when trying to get habit for info page.")
         print(self.term.clear() + self.term.home() + "[" + self.page + "]")
         print()
@@ -353,16 +382,16 @@ class Tui:
 
     def apply_filter(self) -> tuple[list[str], list[str]]:
         """
-        Applies the filter for periodicity.
+        Applies the filter for periodicity
+        and returns tuple[todos, dones]
         """
         # log(f"Filter: {self.filter}")
         if self.filter is None:
             return (self.uncompleted, self.completed)
-        elif self.filter == PeriodLength.daily:
+        if self.filter == PeriodLength.daily:
             daily = self.habit_tracker.get_daily()
             return ([repr(d) for d in daily if not d.completed],\
                     [repr(d) for d in daily if d.completed])
-        else:
-            weakly = self.habit_tracker.get_weakly()
-            return ([repr(w) for w in weakly if not w.completed],\
-                    [repr(w) for w in weakly if w.completed])
+        weekly = self.habit_tracker.get_weekly()
+        return ([repr(w) for w in weekly if not w.completed],\
+                [repr(w) for w in weekly if w.completed])
