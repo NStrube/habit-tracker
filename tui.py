@@ -83,7 +83,6 @@ class Tui:
     drawHomepage()
     drawAnalytics()
     drawInfopage()
-    apply_filter() -> tuple[list[str], list[str]]
     """
     page: TuiPage = TuiPage.homepage
     term: Terminal
@@ -282,7 +281,6 @@ class Tui:
             case ' ':
                 # log("Pressed space.")
                 # Open Habits information
-                # TODO: If filter, doesn't work correctly
                 self.page = TuiPage.info
             case 'f':
                 # log("Pressed f.")
@@ -324,11 +322,18 @@ class Tui:
         """
         Draws the home page.
         """
-        todo, done = self.apply_filter()
+        if self.filter is None:
+            self.getHabits()
+        else:
+            get_habits = self.habit_tracker.get_daily
+            if self.filter == PeriodLength.weekly:
+                get_habits = self.habit_tracker.get_weekly
+            self.uncompleted = [repr(h) for h in get_habits() if not h.completed]
+            self.completed = [repr(h) for h in get_habits() if h.completed]
 
         with self.term.hidden_cursor():
             self.drawHeader()
-            printTable(self.term, todo, done)
+            printTable(self.term, self.uncompleted, self.completed)
             self.warn(f"Filtering: {self.filter}")
         if self.on_todos: 
             cursor_x = 0
@@ -344,20 +349,19 @@ class Tui:
         with self.term.hidden_cursor():
             self.drawHeader()
             print(f"Total number of habits: {len(self.habit_tracker.habits)}")
-            # TODO: better way of saying this?
             print(f"Completed habits: {len(self.completed)}")
             print(f"Daily habits: {self.habit_tracker.nrDailyHabits()}")
-            print(f"Weakly habits: {self.habit_tracker.nrWeaklyHabits()}")
+            print(f"Weekly habits: {self.habit_tracker.nrWeeklyHabits()}")
             print("")
 
             print(f"Current longest streak: {self.habit_tracker.currentLongestStreak()}")
             print(f"Current longest daily habit streak: {self.habit_tracker.currentLongestDailyStreak()}")
-            print(f"Current longest weekly habit streak: {self.habit_tracker.currentLongestWeaklyStreak()}")
+            print(f"Current longest weekly habit streak: {self.habit_tracker.currentLongestWeeklyStreak()}")
             print("")
 
             print(f"Longest ever streak: {self.habit_tracker.longestEverStreak()}")
             print(f"Longest ever daily habit streak: {self.habit_tracker.longestEverDailyStreak()}")
-            print(f"Longest ever weekly habit streak: {self.habit_tracker.longestEverWeaklyStreak()}")
+            print(f"Longest ever weekly habit streak: {self.habit_tracker.longestEverWeeklyStreak()}")
 
     def drawInfopage(self):
         """
@@ -379,19 +383,3 @@ class Tui:
         print("Completed at:")
         for ct in h.completed_times:
             print(f"- [{str(ct)}]")
-
-    def apply_filter(self) -> tuple[list[str], list[str]]:
-        """
-        Applies the filter for periodicity
-        and returns tuple[todos, dones]
-        """
-        # log(f"Filter: {self.filter}")
-        if self.filter is None:
-            return (self.uncompleted, self.completed)
-        if self.filter == PeriodLength.daily:
-            daily = self.habit_tracker.get_daily()
-            return ([repr(d) for d in daily if not d.completed],\
-                    [repr(d) for d in daily if d.completed])
-        weekly = self.habit_tracker.get_weekly()
-        return ([repr(w) for w in weekly if not w.completed],\
-                [repr(w) for w in weekly if w.completed])

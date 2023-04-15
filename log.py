@@ -1,8 +1,7 @@
-LogFile = open("Log", "w")
-
-def log(s: str):
+"""Provides a log method for debugging."""
+def log(string: str):
     """
     A helper method for logging to a file.
     """
-    global LogFile
-    LogFile.write(s + '\n')
+    with open("Log", "w") as log_file:
+        log_file.write(string + '\n')

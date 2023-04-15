@@ -13,7 +13,8 @@ from tui import Tui
 # Mypy not recognizing Exceptions
 # TODO: Cleanup
 # TODO: Json storage
-# TODO: Use filter() method?
+# TODO: Tests/test data
+# TODO: the presentation for pebblepad
 
 # Maybe at some point
 # - Save as, read from
@@ -21,6 +22,7 @@ from tui import Tui
 # - Rename habits
 # - Better naming
 # - Exception (raising and handling?)
+# - Use filter() method? Probably unnecessary
 if __name__ == "__main__":
     t = Tui()
     t.run()

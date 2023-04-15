@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 import sys
 
-from habit import Habit, PeriodLength, StreakPeriod
+from habit import Habit, PeriodLength
 from storage import StorageInterface, StorageKind, OrgStorage
 from log import log
 
@@ -42,13 +42,13 @@ class HabitTracker:
     deleteHabit(n: str)
     getHabit(n: str) -> Optional[Habit]
     nrDailyHabits() -> int
-    nrWeaklyHabits() -> int
+    nrWeeklyHabits() -> int
     currentLongestStreak() -> str
     currentLongestDailyStreak() -> str
-    currentLongestWeaklyStreak() -> str
+    currentLongestWeeklyStreak() -> str
     longestEverStreak() -> str
     longestEverDailyStreak() -> str
-    longestEverWeaklyStreak() -> str
+    longestEverWeeklyStreak() -> str
     get_weekly() -> list[Habit]
     get_daily() -> list[Habit]
     check_names_unique() -> bool
@@ -64,7 +64,6 @@ class HabitTracker:
 
         Takes in a StorageKind and a file if needed to use as primary storage implementation.
         """
-        # TODO: Reusable? Own function?
         if store_kind == StorageKind.org:
             if file:
                 self.storage = OrgStorage(file)
@@ -125,16 +124,7 @@ class HabitTracker:
         # log("Habit to be marked complete:" + n)
         for h in self.habits:
             if n == repr(h):
-                now = datetime.now().replace(microsecond=0)
-                h.completed_times.append(now)
-                h.completed = True
-                if h.longest_streak is not None and h.streak_length > h.longest_streak.length:
-                    # TODO: This doesn't work correctly.
-                    h.longest_streak.length += 1
-                    h.longest_streak.end = now
-                else:
-                    h.longest_streak = StreakPeriod(1, now, now)
-                h.streak_length += 1
+                h.complete()
                 # log("After marked:\n" + str(h))
                 break
 
@@ -168,7 +158,7 @@ class HabitTracker:
         """
         return len([h for h in self.habits if h.period_length == PeriodLength.daily])
 
-    def nrWeaklyHabits(self) -> int:
+    def nrWeeklyHabits(self) -> int:
         """
         Returns the number of weekly habits tracked.
         """
@@ -188,7 +178,7 @@ class HabitTracker:
         l = max(iter(self.get_daily()), key=streak)
         return f"{l.name}: {l.streak_length}"
 
-    def currentLongestWeaklyStreak(self) -> str:
+    def currentLongestWeeklyStreak(self) -> str:
         """
         Returns the name and the streak length of the weekly habit with the longest, ongoing streak.
         """
@@ -213,7 +203,7 @@ class HabitTracker:
             return "None"
         return f"{l.name}: {l.longest_streak}"
 
-    def longestEverWeaklyStreak(self) -> str:
+    def longestEverWeeklyStreak(self) -> str:
         """
         Returns the name and the streak length of the weekly habit with the longest streak recorded.
         """

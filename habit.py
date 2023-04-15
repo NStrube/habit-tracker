@@ -17,7 +17,7 @@ class PeriodLength(StrEnum):
         weekly
     """
     daily = "Daily"
-    weekly = "Weakly"
+    weekly = "Weekly"
 
 class StreakPeriod:
     """
@@ -136,3 +136,31 @@ Creation Date: {self.creation_date}"""
             return None
         return self.completed_times[-1]
 
+    def complete(self):
+        """Sets self.longest_streak if necessary after completing habit."""
+        now = datetime.now().replace(microsecond=0)
+        self.completed_times.append(now)
+        self.completed = True
+        self.streak_length += 1
+
+        if len(self.completed_times) == 1:
+            self.longest_streak = StreakPeriod(1, now, now)
+            return
+
+        tmp = now
+        # Iterate in reverse (ie. newest to oldest)
+        length = 1
+        for dt in reversed(self.completed_times):
+            timedelta = tmp - dt
+            if (self.period_length == PeriodLength.daily and timedelta.days > 1)\
+            or (self.period_length == PeriodLength.weekly and timedelta.days > 7):
+                break
+            beginning = tmp
+            tmp = dt
+            length += 1
+
+        newstreak = StreakPeriod(length, beginning, now)
+        if newstreak.length >= self.longest_streak.length:
+            self.longest_streak = newstreak
+
+            

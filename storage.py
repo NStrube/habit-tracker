@@ -151,7 +151,7 @@ class OrgStorage:
                     l = line[start:-1]
                     if l == "Daily":
                         period = PeriodLength.daily
-                    elif l == "Weakly":
+                    elif l == "Weekly":
                         period = PeriodLength.weekly
                     else:
                         sys.exit(f"Unkown PeriodLength in file: {self.file}")
