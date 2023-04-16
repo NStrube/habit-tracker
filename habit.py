@@ -2,7 +2,7 @@
 # NOTE: Used for returning Habit inside definition
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from enum import StrEnum
 
@@ -45,6 +45,9 @@ class StreakPeriod:
 
     def __str__(self):
         return f"{self.length} [{self.begin}];[{self.end}]"
+
+    def __repr__(self):
+        return str(self)
 
 class Habit():
     """
@@ -131,7 +134,7 @@ Creation Date: {self.creation_date}"""
         A helper function that returns the last time a Habit was completed.
         If the habit was never completed, returns None.
         """
-        log(f"Lcd(): {self.completed_times}")
+        # log(f"Lcd(): {self.completed_times}")
         if self.completed_times is None or len(self.completed_times) == 0:
             return None
         return self.completed_times[-1]
@@ -139,28 +142,28 @@ Creation Date: {self.creation_date}"""
     def complete(self):
         """Sets self.longest_streak if necessary after completing habit."""
         now = datetime.now().replace(microsecond=0)
-        self.completed_times.append(now)
         self.completed = True
         self.streak_length += 1
-
+        self.completed_times.append(now)
+        
         if len(self.completed_times) == 1:
             self.longest_streak = StreakPeriod(1, now, now)
             return
 
-        tmp = now
+        # Current known beginning
+        beginning = now
+        length = 0
         # Iterate in reverse (ie. newest to oldest)
-        length = 1
         for dt in reversed(self.completed_times):
-            timedelta = tmp - dt
-            if (self.period_length == PeriodLength.daily and timedelta.days > 1)\
-            or (self.period_length == PeriodLength.weekly and timedelta.days > 7):
+            delta = beginning - dt
+            if (self.period_length == PeriodLength.daily and delta > timedelta(days=1))\
+            or (self.period_length == PeriodLength.weekly and delta > timedelta(days=7)):
                 break
-            beginning = tmp
-            tmp = dt
             length += 1
+            beginning = dt
 
         newstreak = StreakPeriod(length, beginning, now)
-        if newstreak.length >= self.longest_streak.length:
+        if self.longest_streak is None or newstreak.length >= self.longest_streak.length:
             self.longest_streak = newstreak
 
             

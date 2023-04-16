@@ -57,12 +57,18 @@ class OrgStorage:
         Checks if file is an org file (by checking extension (so not actually xD)),
         if so sets self.file to given file.
         """
+        # TODO: Raise exceptions
+        if Path(file).exists() and not Path(file).is_file():
+            sys.exit("Path given to OrgStorage is not a file.")
         if Path(file).suffix != ".org":
             sys.exit(f"Wrong File Format: Expected org, got: {file}")
         self.file = Path(file)
 
     def read(self) -> list[Habit]:
         """Read in habits from an org file."""
+        if not self.file.exists():
+            return []
+
         with open(self.file, "r") as f:
             habits: list[Habit] = list()
 

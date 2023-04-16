@@ -64,6 +64,7 @@ class HabitTracker:
 
         Takes in a StorageKind and a file if needed to use as primary storage implementation.
         """
+        # TODO: Exceptions
         if store_kind == StorageKind.org:
             if file:
                 self.storage = OrgStorage(file)
@@ -246,30 +247,15 @@ class HabitTracker:
         if a new day or new week has started
         """
         for h in self.habits:
-            log("H:" + repr(h))
-            log("Ct:")
             for ct in h.completed_times:
                 log(repr(ct))
-            log(f"Lcd: {h.last_completed_date()}")
-            log("")
         for h in self.habits:
             lcd = h.last_completed_date()
             if lcd is None:
-                log("Lcd is None")
                 continue
             now = datetime.now()
             now = now.replace(microsecond=0)
-            if h.streak_length > 0 and lcd is None:
-                sys.exit("Unreachable: lcd should never be None if streak length > 0")
-            log(f"Streak length: {h.streak_length}")
-            if h.streak_length > 0:
-                log(f"Type Lcd: {type(lcd)}")
-                log(f"Type now: {type(now)}")
-                log(f"Period length:       {h.period_length}")
-                log(f"Date now:            {now}")
-                log(f"Lcd:                 {lcd}")
-                log(f"lcd < now:           {lcd.day < now.day}")
-                log(f"lcd.week < now.week: {lcd.isocalendar().week < now.isocalendar().week}")
+            assert not (h.streak_length > 0 and lcd is None)
             if h.streak_length > 0 and\
                ((h.period_length == PeriodLength.daily and lcd.day < now.day)\
                or (h.period_length == PeriodLength.weekly and\
