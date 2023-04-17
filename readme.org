@@ -2,4 +2,60 @@
 
 This is a project for University.
 
-* TODO: Write Readme
+* Installation
+Clone this repository:
+#+begin_src shell
+$ git clone https://github.com/NStrube/habit-tracker
+#+end_src
+
+- [[python.org][python]]
+- [[https://github.com/jquast/blessed][blessed]] (install using pip)
+
+* Usage
+Inside the repository run this:
+#+begin_src shell
+$ python main.py
+#+end_src
+
+By default, there is already a =habits.org= file with test data.
+If you wish to have a new one, either delete every habit inside it or rename it.
+
+* Keybindings
+
+** Homepage
+| Key(s)           | Action                                         |
+|------------------+------------------------------------------------|
+| h,l, Left, Right | Move to other list                             |
+| j, Down          | Move down                                      |
+| k, Up            | Move up                                        |
+| Space            | Open information page for habit under cursor   |
+| q                | quit                                           |
+| o                | reread the habits file                         |
+| s                | manually save the habits file                  |
+| Enter            | If possible, complete the habit under cursor   |
+| +, =             | Create new habit                               |
+| -, _             | Delete habit                                   |
+| Tab              | Move to Analytics page                         |
+| f                | Change periodicity shown (None, daily, weekly) |
+
+** Infopage
+| Key(s)            | Action                        |
+|-------------------+-------------------------------|
+| q                 | quit                          |
+| o                 | reread the habits file        |
+| s                 | manually save the habits file |
+| Space, Tab, Enter | Close infopage                |
+
+** Analytics page
+| Key(s)            | Action                        |
+|-------------------+-------------------------------|
+| q                 | quit                          |
+| o                 | reread the habits file        |
+| s                 | manually save the habits file |
+| Space, Tab, Enter | Move to homepage              |
+
+* Tests
+Tests are done using pytest.
+#+begin_src shell
+$ pytest
+#+end_src
