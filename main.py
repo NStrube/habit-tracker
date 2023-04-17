@@ -12,11 +12,10 @@ from tui import Tui
 
 # Mypy not recognizing Exceptions
 # TODO: Cleanup
-# TODO: Json storage
-# TODO: Tests/test data
 # TODO: the presentation for pebblepad
 
 # Maybe at some point
+# - Json storage
 # - Save as, read from
 # - Use cLi args
 # - Rename habits
