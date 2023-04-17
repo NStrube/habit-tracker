@@ -203,6 +203,7 @@ class Tui:
         match inp:
             case 'q':
                 self.quit = True
+                self.habit_tracker.save()
             case 'o':
                 log("Pressed 'o'")
                 self.habit_tracker.read()
@@ -300,6 +301,7 @@ class Tui:
         match inp:
             case 'q':
                 self.quit = True
+                self.habit_tracker.save()
             case 'o':
                 log("Pressed 'o'")
                 self.habit_tracker.read()
