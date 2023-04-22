@@ -31,7 +31,8 @@ def test_update(habits, test_tracker):
     test_tracker.update()
     # Have to use strings, otherwise doesn't compare correctly??
     assert str(habits[0]) == str(test_tracker.habits[0])
-    assert str(habits[1]) != str(test_tracker.habits[1])
+    assert str(habits[1]) == str(test_tracker.habits[1])
+    assert habits[1].completed_times != test_tracker.habits[1].completed_times
     assert str(habits[2]) == str(test_tracker.habits[2])
 
 def test_get_completed(test_tracker, habits):
