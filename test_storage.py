@@ -28,6 +28,7 @@ def test_save_and_read(test_org):
          ]
     test_org.save(h)
     t = test_org.read()
+    assert len(h) == len(t)
     for idx in range(len(h)):
         a = h[idx]
         b = t[idx]

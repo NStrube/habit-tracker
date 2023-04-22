@@ -104,7 +104,7 @@ class HabitTracker:
         !! Not Implemented Yet !!
         Saves habits to given file using giving Storage implementation.
         """
-        print("HabitTracker.save_as implemented yet.")
+        print("HabitTracker.save_as not implemented yet.")
 
     def get_completed_str(self) -> list[str]:
         """
@@ -246,15 +246,14 @@ class HabitTracker:
         Updates all habits according to their period length
         if a new day or new week has started
         """
-        for h in self.habits:
-            for ct in h.completed_times:
-                log(repr(ct))
+        # for h in self.habits:
+        #     for ct in h.completed_times:
+        #         log(repr(ct))
         for h in self.habits:
             lcd = h.last_completed_date()
             if lcd is None:
                 continue
-            now = datetime.now()
-            now = now.replace(microsecond=0)
+            now = datetime.now().replace(microsecond=0)
             assert not (h.streak_length > 0 and lcd is None)
             if h.streak_length > 0 and\
                ((h.period_length == PeriodLength.daily and lcd.day < now.day)\

@@ -236,12 +236,14 @@ class Tui:
                     self.cursor = len(self.uncompleted) - 1
                 elif not self.on_todos and self.cursor > len(self.completed) - 1:
                     self.cursor = len(self.completed) - 1
-                max(self.cursor, 0)
+                self.cursor = max(self.cursor, 0)
             case 'j' | 'key_down':
                 # log(f"Press j: on todo: {self.on_todos}; cursor: {self.cursor}; len: {len(self.uncompleted)}")
-                if self.on_todos and self.cursor < len(self.uncompleted) - 1\
-                        or not self.on_todos and self.cursor < len(self.completed) - 1:
-                    self.cursor += 1
+                if self.on_todos:  
+                    max_cursor_pos = len(self.uncompleted)
+                else:
+                    max_cursor_pos = len(self.completed)
+                self.cursor = min(self.cursor + 1, max(max_cursor_pos - 1, 0))
             case 'k' | 'key_up':
                 if self.cursor > 0:
                     self.cursor -= 1
@@ -267,12 +269,13 @@ class Tui:
                     if not self.confirm(f"Are you sure you want to delete '{self.uncompleted[self.cursor]}'"):
                         return
                     # log(f"Deleting {self.uncompleted[self.cursor]}...")
-                    self.habit_tracker.deleteHabit(self.uncompleted[self.cursor])
-                elif not self.on_todos and len(self.completed):
+                    toDelete = self.uncompleted[self.cursor]
+                elif not self.on_todos and len(self.completed) > 0:
                     if not self.confirm(f"Are you sure you want to delete '{self.completed[self.cursor]}'"):
                         return
                     # log(f"Deleting {self.completed[self.cursor]}...")
-                    self.habit_tracker.deleteHabit(self.completed[self.cursor])
+                    toDelete = self.uncompleted[self.cursor]
+                self.habit_tracker.deleteHabit(toDelete)
                 self.getHabits()
                 if self.cursor > 0:
                     self.cursor -= 1
@@ -376,7 +379,7 @@ class Tui:
             h = self.habit_tracker.getHabit(self.completed[self.cursor])
         else:
             self.page = TuiPage.homepage
-            # self.draw()
+            self.draw()
             return
         if h is None:
             sys.exit("Unreachable: Got None when trying to get habit for info page.")
